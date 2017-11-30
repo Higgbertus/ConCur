@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
@@ -37,16 +38,19 @@ public class ConAdapter extends BaseAdapter {
     public View getView(int i, View view, ViewGroup viewGroup) {
         Context context = viewGroup.getContext();
         String entry = data.getCurrencies()[i];
+               int imageID = context.getResources().getIdentifier("flag_"+entry.toLowerCase(),"drawable", context.getPackageName());
 
         if (view == null){
             LayoutInflater inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view =inflater.inflate(R.layout.spinner_item,null,false);
+            view =inflater.inflate(R.layout.listview_image,null,false);
         }
-        TextView textView = view.findViewById(R.id.tv_cur);
+        ImageView imageView = view.findViewById(R.id.imageView);
+        imageView.setImageResource(imageID);
+
+        TextView textView = view.findViewById(R.id.textView);
         textView.setText(entry);
 
-        TextView textView1 = view.findViewById(R.id.tv_factor);
-        textView1.setText(String.format("%.4f", data.getExchangeRate(entry)));
+
 
         return view;
     }

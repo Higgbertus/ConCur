@@ -20,4 +20,6 @@
         android:gravity="center"
         android:text="TextView"
         android:textSize="24sp" />
+
+
 </LinearLayout>

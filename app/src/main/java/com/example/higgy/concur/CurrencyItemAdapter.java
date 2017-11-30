@@ -38,18 +38,21 @@ public class CurrencyItemAdapter extends BaseAdapter {
     public View getView(int i, View view, ViewGroup viewGroup) {
         Context context = viewGroup.getContext();
         String entry = data.getCurrencies()[i];
-
+        String value = String.valueOf(data.getExchangeRate(data.getCurrencies()[i]));
         int imageID = context.getResources().getIdentifier("flag_"+entry.toLowerCase(),"drawable", context.getPackageName());
 
         if (view == null){
             LayoutInflater inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view =inflater.inflate(R.layout.listview_image,null,false);
+            view =inflater.inflate(R.layout.listview_image_values,null,false);
         }
         ImageView imageView = view.findViewById(R.id.imageView);
-imageView.setImageResource(imageID);
+        imageView.setImageResource(imageID);
 
         TextView textView = view.findViewById(R.id.textView);
         textView.setText(entry);
+
+        TextView textView2 = view.findViewById(R.id.textView2);
+        textView2.setText(value);
 
         return view;
     }

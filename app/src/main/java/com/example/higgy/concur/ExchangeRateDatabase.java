@@ -54,7 +54,6 @@ public class ExchangeRateDatabase {
 
         CURRENCIES_MAP.keySet().toArray(CURRENCIES_LIST);
         Arrays.sort(CURRENCIES_LIST);
-
     }
 
     /**
@@ -84,5 +83,14 @@ public class ExchangeRateDatabase {
      */
     public double convert(double value, String currencyFrom, String currencyTo) {
         return value / getExchangeRate(currencyFrom) * getExchangeRate(currencyTo);
+    }
+
+    public void setExchangeRate(String currency, double rate){
+       for (int i =0;i<RATES.length;i++){
+           if (RATES[i].getCurrencyName().equals(currency)){
+               RATES[i] = new ExchangeRate(currency,RATES[i].getCapital(),rate);
+               break;
+           }
+       }
     }
 }

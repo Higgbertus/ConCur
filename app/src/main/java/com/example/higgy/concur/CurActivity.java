@@ -24,7 +24,7 @@ private Intent intent;
 
         exchangeRateDB = new ExchangeRateDatabase();
         currencyItemAdapter = new CurrencyItemAdapter(exchangeRateDB);
-        conAdapter = new ConAdapter(exchangeRateDB);
+        //conAdapter = new ConAdapter(exchangeRateDB);
         listView.setAdapter(currencyItemAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
