@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
- * Created by Higgy on 13.11.2017.
+ * Created by Fabi on 13.11.2017.
  */
 
 public class CurrencyItemAdapter extends BaseAdapter {

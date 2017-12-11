@@ -23,4 +23,8 @@ public class ExchangeRate {
     public double getRateForOneEuro() {
         return rateForOneEuro;
     }
+
+    public void setRateForOneEuro(double rateForOneEuro){
+        this.rateForOneEuro = rateForOneEuro;
+    }
 }

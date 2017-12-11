@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -23,22 +24,23 @@ import java.net.URLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ExchangeRateDatabase exchangeRateDB;
+    public ExchangeRateDatabase exchangeRateDB;
     private ConAdapter currencyItemAdapter;
     private Spinner spinnerFrom, spinnerTo;
     private EditText editText;
     private TextView textView;
     private Toolbar toolbar;
-
     private Intent intent;
     ShareActionProvider shareActionProvider;
-
+    private ExchangeRateUpdateRunnable runnable;
+private Thread thread;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         exchangeRateDB = new ExchangeRateDatabase();
         currencyItemAdapter = new ConAdapter(exchangeRateDB);
+
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -50,7 +52,12 @@ public class MainActivity extends AppCompatActivity {
 
         editText = (EditText) findViewById(R.id.editText);
         textView = (TextView) findViewById(R.id.textView);
+        runnable = new ExchangeRateUpdateRunnable(exchangeRateDB,this);
+        thread = new Thread(runnable);
+    }
 
+    private void updateViews(){
+        currencyItemAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -58,15 +65,19 @@ public class MainActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.refreshlist_menu:
-                new Thread(new Runnable() {
-                    public void run() {
-                        // a potentially  time consuming task
-                        updateDB();
-                        // update Listviews
-
-                    }
-                }).start();
-                currencyItemAdapter.notifyDataSetChanged();
+//                new Thread(new Runnable() {
+//                    public void run() {
+//                        // a potentially  time consuming task
+//                        updateDB();
+//                    }
+//                }).start();
+//                updateViews();
+                if (!thread.isAlive()) {
+                    thread = new Thread(runnable);
+                    thread.start();
+                }else{
+                    Toast.makeText(this,"Update already in progress",Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.curlist_menu:
                 intent = new Intent(MainActivity.this, CurActivity.class);
@@ -88,33 +99,33 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
-    private void updateDB() {
-        String query = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
-        try {
-            URL url = new URL(query);
-            URLConnection connection = url.openConnection();
-
-            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
-            parser.setInput(connection.getInputStream(), connection.getContentEncoding());
-
-            int eventType = parser.getEventType();
-
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (eventType == XmlPullParser.START_TAG) {
-                    if ("Cube".equals(parser.getName())) {
-                        if (parser.getAttributeValue(null, "currency") != null) {
-                            //,Double.parseDouble(parser.getAttributeValue(null, "rate"))
-                            exchangeRateDB.setExchangeRate(parser.getAttributeValue(null, "currency"), Double.parseDouble(parser.getAttributeValue(null, "rate")));
-                        }
-                    }
-                }
-                eventType = parser.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    private void updateDB() {
+//        String query = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
+//        try {
+//            URL url = new URL(query);
+//            URLConnection connection = url.openConnection();
+//
+//            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+//            parser.setInput(connection.getInputStream(), connection.getContentEncoding());
+//
+//            int eventType = parser.getEventType();
+//
+//            while (eventType != XmlPullParser.END_DOCUMENT) {
+//                if (eventType == XmlPullParser.START_TAG) {
+//                    if ("Cube".equals(parser.getName())) {
+//                        if (parser.getAttributeValue(null, "currency") != null) {
+//                            //,Double.parseDouble(parser.getAttributeValue(null, "rate"))
+//                            exchangeRateDB.setExchangeRate(parser.getAttributeValue(null, "currency"), Double.parseDouble(parser.getAttributeValue(null, "rate")));
+//
+//                        }
+//                    }
+//                }
+//                eventType = parser.next();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     private void setShareText(String text) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -124,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
         }
         shareActionProvider.setShareIntent(shareIntent);
     }
-
 
     public void onClick(View view) {
         textView.setText(String.format("%.2f", exchangeRateDB.convert(Double.parseDouble(editText.getText().toString()), spinnerFrom.getSelectedItem().toString(), spinnerTo.getSelectedItem().toString())));
