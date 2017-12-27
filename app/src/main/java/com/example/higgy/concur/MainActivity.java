@@ -1,6 +1,8 @@
 package com.example.higgy.concur;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private Intent intent;
     ShareActionProvider shareActionProvider;
     private ExchangeRateUpdateRunnable runnable;
+
+
 private Thread thread;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +71,6 @@ private Thread thread;
             case R.id.refreshlist_menu:
 //                new Thread(new Runnable() {
 //                    public void run() {
-//                        // a potentially  time consuming task
 //                        updateDB();
 //                    }
 //                }).start();
@@ -126,6 +129,28 @@ private Thread thread;
 //            e.printStackTrace();
 //        }
 //    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences sp = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+
+        editor.putString("source", spinnerFrom.getSelectedItem().toString());
+        editor.putString("target", spinnerTo.getSelectedItem().toString());
+        editor.putString("value", editText.getText().toString());
+        editor.apply();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences sp = getPreferences(Context.MODE_PRIVATE);
+
+
+        editText.setText(sp.getString("value", ""));
+    }
 
     private void setShareText(String text) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);

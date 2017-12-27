@@ -12,7 +12,7 @@ import android.support.v4.app.NotificationCompat;
 
 public class UpdateNotifier {
     private static final int NOTI_ID = 7777;
-    NotificationManager    notificationManager;
+    NotificationManager notificationManager;
     NotificationCompat.Builder notificationBuilder;
 
     public UpdateNotifier(Context context) {
