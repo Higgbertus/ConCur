@@ -1,13 +1,22 @@
 package com.example.higgy.concur;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.provider.BaseColumns;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     ShareActionProvider shareActionProvider;
     private ExchangeRateUpdateRunnable runnable;
 
+    private static final int JOB_ID = 101;
+
 
 private Thread thread;
     @Override
@@ -44,7 +55,6 @@ private Thread thread;
         setContentView(R.layout.activity_main);
         exchangeRateDB = new ExchangeRateDatabase();
         currencyItemAdapter = new ConAdapter(exchangeRateDB);
-
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -58,6 +68,19 @@ private Thread thread;
         textView = (TextView) findViewById(R.id.textView);
         runnable = new ExchangeRateUpdateRunnable(exchangeRateDB,this);
         thread = new Thread(runnable);
+
+//        ComponentName serviceName = new ComponentName(this, UpdateJobService.class);
+//        JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
+//                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+//                .setRequiresDeviceIdle(false)
+//                .setRequiresCharging(false)
+//                .setPeriodic(86400000).build();
+//
+//        JobScheduler scheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+//        int res = scheduler.schedule(jobInfo);
+//        if (res == JobScheduler.RESULT_SUCCESS){
+//            Log.d("JobService", "Job scheduled successfully");
+//        }
     }
 
     private void updateViews(){
@@ -129,7 +152,7 @@ private Thread thread;
 //            e.printStackTrace();
 //        }
 //    }
-
+DBHelper dbHelper = new DBHelper(this);
     @Override
     protected void onPause() {
         super.onPause();
@@ -141,15 +164,51 @@ private Thread thread;
         editor.putString("target", spinnerTo.getSelectedItem().toString());
         editor.putString("value", editText.getText().toString());
         editor.apply();
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        for (int i = 0; i < exchangeRateDB.getCurrencies().length; i++) {
+            values.put(dbHelper.CUR_COL_TITLE,exchangeRateDB.getCurrencies()[i]);
+            values.put(dbHelper.CUR_COL_VALUE,exchangeRateDB.getExchangeRate(exchangeRateDB.getCurrencies()[i]));
+            db.insert(dbHelper.CUR_TABLE, null, values);
+        }
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         SharedPreferences sp = getPreferences(Context.MODE_PRIVATE);
-
-
+        for (int i = 0; i < spinnerFrom.getCount(); i++) {
+            if  (spinnerFrom.getItemAtPosition(i).equals(sp.getString("source", ""))){
+                    spinnerFrom.setSelection(i);
+                    break;
+            }
+        }
+        for (int i = 0; i < spinnerTo.getCount(); i++) {
+            if (spinnerTo.getItemAtPosition(i).equals(sp.getString("target", ""))) {
+                spinnerTo.setSelection(i);
+                break;
+            }
+        }
         editText.setText(sp.getString("value", ""));
+
+        try {
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            String[] projection = {BaseColumns._ID, dbHelper.CUR_COL_TITLE, dbHelper.CUR_COL_VALUE};
+            String selection = dbHelper.CUR_COL_TITLE + " = ?";
+            String[] selectionArgs =  {"AUD"};
+            Cursor c = db.query(dbHelper.CUR_TABLE, projection, selection,selectionArgs,null,null,null);
+            while (c.moveToNext()){
+                exchangeRateDB.setExchangeRate(c.getString(c.getColumnIndexOrThrow(dbHelper.CUR_COL_TITLE)), Double.parseDouble(c.getString(c.getColumnIndexOrThrow(dbHelper.CUR_COL_VALUE))));
+            }
+        } catch (SQLiteException e) {
+            // database doesn't exist yet.
+        }
+
+
+
     }
 
     private void setShareText(String text) {
