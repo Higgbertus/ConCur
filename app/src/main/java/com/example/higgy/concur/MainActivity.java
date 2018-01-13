@@ -180,16 +180,19 @@ DBHelper dbHelper = new DBHelper(this);
     protected void onResume() {
         super.onResume();
         SharedPreferences sp = getPreferences(Context.MODE_PRIVATE);
-        for (int i = 0; i < spinnerFrom.getCount(); i++) {
-            if  (spinnerFrom.getItemAtPosition(i).equals(sp.getString("source", ""))){
-                    spinnerFrom.setSelection(i);
-                    break;
-            }
+        String target = sp.getString("target","");
+        String source = sp.getString("source","");
+
+        for (int i = 0; i < exchangeRateDB.getCurrencies().length; i++) {
+            String temp = exchangeRateDB.getCurrencies()[i];
+         if (temp.equals(target)){
+             spinnerFrom.setSelection(i);
+         }
         }
-        for (int i = 0; i < spinnerTo.getCount(); i++) {
-            if (spinnerTo.getItemAtPosition(i).equals(sp.getString("target", ""))) {
+        for (int i = 0; i < exchangeRateDB.getCurrencies().length; i++) {
+            String temp = exchangeRateDB.getCurrencies()[i];
+            if (temp.equals(source)){
                 spinnerTo.setSelection(i);
-                break;
             }
         }
         editText.setText(sp.getString("value", ""));

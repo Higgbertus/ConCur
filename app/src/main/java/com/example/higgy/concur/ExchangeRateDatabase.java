@@ -54,7 +54,6 @@ public class ExchangeRateDatabase {
 
         CURRENCIES_MAP.keySet().toArray(CURRENCIES_LIST);
         Arrays.sort(CURRENCIES_LIST);
-
     }
 
     /**
